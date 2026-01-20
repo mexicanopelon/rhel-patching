@@ -5,7 +5,7 @@
     snapshot_name: "pre_upgrade_{{ ansible_date_time.date }}"
 
 - name: Get VM info from vCenter
-  community.vmware.vmware_guest_info:
+  vmware.vmware.vmware_guest_info:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
@@ -16,7 +16,7 @@
   delegate_to: localhost
 
 - name: Step 2 - Shutdown the VM
-  community.vmware.vmware_guest_powerstate:
+  vmware.vmware.vmware_guest_powerstate:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
@@ -26,7 +26,7 @@
   delegate_to: localhost
 
 - name: Wait for VM to power off
-  community.vmware.vmware_guest_info:
+  vmware.vmware.vmware_guest_info:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
@@ -40,7 +40,7 @@
   delegate_to: localhost
 
 - name: Step 3 - Take VMware snapshot
-  community.vmware.vmware_guest_snapshot:
+  vmware.vmware.vmware_guest_snapshot:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
@@ -59,7 +59,7 @@
     upgrade_snapshot_name: "{{ snapshot_name }}"
 
 - name: Step 4 - Power on the VM
-  community.vmware.vmware_guest_powerstate:
+  vmware.vmware.vmware_guest_powerstate:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
