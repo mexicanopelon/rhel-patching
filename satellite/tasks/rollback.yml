@@ -27,7 +27,7 @@
     - snapshot_revert is failed
 
 - name: Rollback - Power on VM after snapshot revert
-  vmware.vmware.guest_powerstate:
+  vmware.vmware.vm_powerstate:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
