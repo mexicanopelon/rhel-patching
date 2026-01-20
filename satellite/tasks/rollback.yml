@@ -5,7 +5,7 @@
     vm_name: "{{ vmware_guest_name | default(inventory_hostname_short) }}"
 
 - name: Rollback - Revert to VMware snapshot
-  vmware.vmware.snapshot:
+  vmware.vmware.vm_snapshot:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
