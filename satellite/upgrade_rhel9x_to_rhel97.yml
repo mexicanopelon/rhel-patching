@@ -12,6 +12,14 @@
     rollback_on_failure: true
     disable_duration: "4h"
     set_release_version: true
+    vcenter_datacenter: "Orl-Lab-DC"
+    vcenter_validate_certs: false
+    vcenter_hostname: orl-vcenter6.presidiolab.local
+    vcenter_username: cdelapaz
+    # vcenter_password: from VMware credential
+
+    # Satellite settings
+    satellite_url: https://satellite.qjdst.sandbox2843.opentlc.com
     # These come from AAP credentials or surveys
     # xymon_server: from survey or inventory
     # satellite_url: from Red Hat Satellite credential
