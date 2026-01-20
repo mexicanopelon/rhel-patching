@@ -23,66 +23,66 @@
     # vcenter_datacenter: from survey or inventory
 
   pre_tasks:
-    - name: Validate required variables
-      ansible.builtin.assert:
-        that:
-          - satellite_url is defined
-          # - satellite_org_id is defined
-          # - satellite_activation_key is defined
-          # - vcenter_hostname is defined or vcenter_server is defined
-        fail_msg: "Required credentials or variables are missing. Check AAP credential and survey configuration."
-
-    # - name: Set vCenter hostname from credential
-    #   ansible.builtin.set_fact:
-    #     vcenter_hostname: "{{ vcenter_server | default(vcenter_hostname) }}"
-    #   when: vcenter_server is defined
-
-    # - name: Validate target is RHEL 9.5 or 9.6
+    # - name: Validate required variables
     #   ansible.builtin.assert:
     #     that:
-    #       - ansible_distribution == "RedHat"
-    #       - ansible_distribution_version is version('9.5', '>=')
-    #       - ansible_distribution_version is version('9.7', '<')
-    #     fail_msg: "This playbook targets RHEL 9.5 or 9.6 systems only. Current version: {{ ansible_distribution_version }}"
+    #       - satellite_url is defined
+    #       # - satellite_org_id is defined
+    #       # - satellite_activation_key is defined
+    #       # - vcenter_hostname is defined or vcenter_server is defined
+    #     fail_msg: "Required credentials or variables are missing. Check AAP credential and survey configuration."
 
-    # - name: Display current system info
-    #   ansible.builtin.debug:
-    #     msg: "Upgrading {{ inventory_hostname }} from RHEL {{ ansible_distribution_version }} to {{ target_version }}"
+    - name: Set vCenter hostname from credential
+      ansible.builtin.set_fact:
+        vcenter_hostname: "{{ vcenter_server | default(vcenter_hostname) }}"
+      when: vcenter_server is defined
 
-  # tasks:
-  #   - name: Upgrade block with rollback
-  #     block:
-  #       - name: Pre-upgrade preparation
-  #         ansible.builtin.include_tasks: tasks/pre_upgrade_checks.yml
+    - name: Validate target is RHEL 9.5 or 9.6
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "RedHat"
+          - ansible_distribution_version is version('9.5', '>=')
+          - ansible_distribution_version is version('9.7', '<')
+        fail_msg: "This playbook targets RHEL 9.5 or 9.6 systems only. Current version: {{ ansible_distribution_version }}"
 
-  #       - name: Step 1 - Disable Xymon monitoring
-  #         ansible.builtin.include_tasks: tasks/disable_xymon.yml
-  #         when: xymon_server is defined
+    - name: Display current system info
+      ansible.builtin.debug:
+        msg: "Upgrading {{ inventory_hostname }} from RHEL {{ ansible_distribution_version }} to {{ target_version }}"
 
-  #       - name: Step 2-4 - VMware snapshot workflow
-  #         ansible.builtin.include_tasks: tasks/vmware_snapshot.yml
+  tasks:
+    - name: Upgrade block with rollback
+      block:
+        - name: Pre-upgrade preparation
+          ansible.builtin.include_tasks: tasks/pre_upgrade_checks.yml
 
-  #       - name: Step 5 - Register with Satellite
-  #         ansible.builtin.include_tasks: tasks/register_satellite.yml
+        - name: Step 1 - Disable Xymon monitoring
+          ansible.builtin.include_tasks: tasks/disable_xymon.yml
+          when: xymon_server is defined
 
-  #       - name: Step 6 - Apply updates
-  #         ansible.builtin.include_tasks: tasks/apply_updates.yml
+        - name: Step 2-4 - VMware snapshot workflow
+          ansible.builtin.include_tasks: tasks/vmware_snapshot.yml
 
-  #       - name: Step 7 - Reboot system
-  #         ansible.builtin.include_tasks: tasks/reboot_system.yml
+        - name: Step 5 - Register with Satellite
+          ansible.builtin.include_tasks: tasks/register_satellite.yml
 
-  #       - name: Post-upgrade validation
-  #         ansible.builtin.include_tasks: tasks/post_upgrade_validation.yml
+        - name: Step 6 - Apply updates
+          ansible.builtin.include_tasks: tasks/apply_updates.yml
 
-  #       - name: Re-enable Xymon monitoring
-  #         ansible.builtin.include_tasks: tasks/enable_xymon.yml
-  #         when: xymon_server is defined
+        - name: Step 7 - Reboot system
+          ansible.builtin.include_tasks: tasks/reboot_system.yml
 
-  #     rescue:
-  #       - name: Upgrade failed - attempt rollback
-  #         ansible.builtin.include_tasks: tasks/rollback.yml
-  #         when: rollback_on_failure | bool
+        - name: Post-upgrade validation
+          ansible.builtin.include_tasks: tasks/post_upgrade_validation.yml
 
-  #       - name: Fail the play
-  #         ansible.builtin.fail:
-  #           msg: "Upgrade failed on {{ inventory_hostname }}. Check logs for details."
+        - name: Re-enable Xymon monitoring
+          ansible.builtin.include_tasks: tasks/enable_xymon.yml
+          when: xymon_server is defined
+
+      rescue:
+        - name: Upgrade failed - attempt rollback
+          ansible.builtin.include_tasks: tasks/rollback.yml
+          when: rollback_on_failure | bool
+
+        - name: Fail the play
+          ansible.builtin.fail:
+            msg: "Upgrade failed on {{ inventory_hostname }}. Check logs for details."

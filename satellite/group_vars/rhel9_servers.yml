@@ -1,7 +1,16 @@
 ---
 # VMware settings
-vcenter_datacenter: "orl-vcenter6.presidiolab.local"
+vcenter_datacenter: "Orl-Lab-DC"
 vcenter_validate_certs: false
+vcenter_hostname: orl-vcenter6.presidiolab.local
+vcenter_username: cdelapaz
+# vcenter_password: from VMware credential
+
+# Satellite settings
+satellite_url: https://satellite.qjdst.sandbox2843.opentlc.com
+# satellite_org_id: from Red Hat Satellite credential
+# satellite_activation_key: from survey or inventory
+
 
 # Xymon settings (optional)
 xymon_server: "xymon.example.com"

@@ -1,17 +1,17 @@
-all:
-  children:
-    rhel9_servers:
-      hosts:
-        10.1.21.196
-      vars:
-        ansible_user: ansible
-        ansible_become: true
-        xymon_server: "xymon.example.com"
-        satellite_server: "{{ satellite_hostname }}"
-        satellite_org_id: "{{ satellite_org_id }}"
-        satellite_username: "{{ satellite_username }}"
-        satellite_password: "{{ satellite_password }}"
-        vcenter_hostname: "{{ vcenter_hostname }}"
-        vcenter_datacenter: "orl-vcenter6.presidiolab.local"
-        vcenter_username: "{{ vcenter_username }}"
-        vcenter_password: "{{ vcenter_password }}"
+# all:
+#   children:
+#     rhel9_servers:
+#       hosts:
+#         10.1.21.196
+#       vars:
+#         ansible_user: ansible
+#         ansible_become: true
+#         xymon_server: "xymon.example.com"
+#         satellite_server: "{{ satellite_hostname }}"
+#         satellite_org_id: "{{ satellite_org_id }}"
+#         satellite_username: "{{ satellite_username }}"
+#         satellite_password: "{{ satellite_password }}"
+#         vcenter_hostname: "{{ vcenter_hostname }}"
+#         vcenter_datacenter: "orl-vcenter6.presidiolab.local"
+#         vcenter_username: "{{ vcenter_username }}"
+#         vcenter_password: "{{ vcenter_password }}"
