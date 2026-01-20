@@ -28,6 +28,20 @@
     datacenter: "{{ vcenter_datacenter }}"
     name: "{{ vm_name }}"
     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: vm_info
+
+
+- ansible.builtin.debug:
+    var: vm_info
+
+- name: Wait for VM to power off
+  vmware.vmware.guest_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ vm_name }}"
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   register: vm_powerstate
   until: vm_powerstate.guest_info.hw_power_status == "poweredOff"
   retries: 30
@@ -35,15 +49,11 @@
   delegate_to: localhost
 
 
-- debug:
-    var: vm_powerstate
-
-
 - name: Gather guest vm info
   vmware.vmware.guest_info:
-    hostname: "https://vcenter"
-    username: "username"
-    password: "password"
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
     validate_certs: false
     guest_name: "my_vm"
 
