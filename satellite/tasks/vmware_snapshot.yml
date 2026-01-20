@@ -35,6 +35,10 @@
   delegate_to: localhost
 
 
+- debug:
+    var: vm_powerstate
+
+
 - name: Gather guest vm info
   vmware.vmware.guest_info:
     hostname: "https://vcenter"
