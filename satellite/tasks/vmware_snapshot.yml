@@ -1,9 +1,13 @@
 ---
 - name: Set VM name fact
   ansible.builtin.set_fact:
-    vm_name: "{{ vmware_guest_name | default(inventory_hostname_short) }}"
+    vm_name: "{{ vmware_guest_name | default(inventory_hostname) }}"
     snapshot_name: "pre_upgrade_{{ ansible_date_time.date }}"
 
+- name: Display VM name being used
+  ansible.builtin.debug:
+    msg: "Using VM name: {{ vm_name }}"
+    
 - name: Step 2 - Shutdown the VM
   vmware.vmware.vm_powerstate:
     hostname: "{{ vcenter_hostname }}"

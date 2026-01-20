@@ -2,7 +2,7 @@
 - name: Set rollback info facts
   ansible.builtin.set_fact:
     rollback_original_version: "{{ pre_upgrade_state.version | default('unknown') }}"
-    vm_name: "{{ vmware_guest_name | default(inventory_hostname_short) }}"
+    vm_name: "{{ vmware_guest_name | default(inventory_hostname) }}"
 
 - name: Rollback - Revert to VMware snapshot
   vmware.vmware.vm_snapshot:
