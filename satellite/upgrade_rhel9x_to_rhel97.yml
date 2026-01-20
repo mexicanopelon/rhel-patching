@@ -6,18 +6,21 @@
   serial: "{{ batch_size | default(1) }}"
   max_fail_percentage: 0
   vars:
+    ansible_user: ansible
+    ansible_become: true
     target_version: "9.7"
     reboot_timeout: 900
     rollback_on_failure: true
     xymon_server: "xymon.example.com"
-    satellite_server: "satellite.example.com"
-    satellite_org: "Your_Org"
-    satellite_activation_key: "rhel9-9.7-key"
+    satellite_server: "{{ satellite_hostname }}"
+    satellite_org_id: "{{ satellite_org_id }}"
+    satellite_username: "{{ satellite_username }}"
+    satellite_password: "{{ satellite_password }}"
     content_view: "RHEL9_9.7_Production"
-    vcenter_hostname: "vcenter.example.com"
-    vcenter_username: "administrator@vsphere.local"
-    vcenter_password: "{{ vault_vcenter_password }}"
-    vcenter_datacenter: "Datacenter"
+    vcenter_hostname: "{{ vcenter_hostname }}"
+    vcenter_datacenter: "orl-vcenter6.presidiolab.local"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
     snapshot_name: "pre_upgrade_{{ ansible_date_time.date }}"
 
   pre_tasks:
