@@ -1,6 +1,7 @@
 ---
 - name: Upgrade RHEL 9.x to 9.7 with Security Patches
-  hosts: "{{ target_hosts | default('rhel9_servers') }}"
+  # hosts: "{{ target_hosts | default('rhel9_servers') }}"
+  hosts: all
   become: true
   gather_facts: true
   serial: "{{ batch_size | default(1) }}"
