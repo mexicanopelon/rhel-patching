@@ -4,29 +4,20 @@
     vm_name: "{{ vmware_guest_name | default(inventory_hostname_short) }}"
     snapshot_name: "pre_upgrade_{{ ansible_date_time.date }}"
 
-- name: Get VM info from vCenter
-  vmware.vmware.vmware_guest_info:
+- name: Step 2 - Shutdown the VM
+  vmware.vmware.guest_powerstate:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     datacenter: "{{ vcenter_datacenter }}"
     name: "{{ vm_name }}"
-    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
-  register: vm_info
-  delegate_to: localhost
-
-- name: Step 2 - Shutdown the VM
-  vmware.vmware.vmware_guest_powerstate:
-    hostname: "{{ vcenter_hostname }}"
-    username: "{{ vcenter_username }}"
-    password: "{{ vcenter_password }}"
-    name: "{{ vm_name }}"
     state: shutdown-guest
     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: vm_shutdown
   delegate_to: localhost
 
 - name: Wait for VM to power off
-  vmware.vmware.vmware_guest_info:
+  vmware.vmware.guest_info:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
@@ -34,13 +25,13 @@
     name: "{{ vm_name }}"
     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   register: vm_powerstate
-  until: vm_powerstate.instance.hw_power_status == "poweredOff"
+  until: vm_powerstate.guest_info.power_state == "poweredOff"
   retries: 30
   delay: 10
   delegate_to: localhost
 
 - name: Step 3 - Take VMware snapshot
-  vmware.vmware.vmware_guest_snapshot:
+  vmware.vmware.snapshot:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
@@ -52,6 +43,7 @@
     memory_dump: false
     quiesce: false
     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: snapshot_result
   delegate_to: localhost
 
 - name: Record snapshot name for rollback
@@ -59,13 +51,15 @@
     upgrade_snapshot_name: "{{ snapshot_name }}"
 
 - name: Step 4 - Power on the VM
-  vmware.vmware.vmware_guest_powerstate:
+  vmware.vmware.guest_powerstate:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
     name: "{{ vm_name }}"
     state: powered-on
     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: vm_poweron
   delegate_to: localhost
 
 - name: Wait for system to boot and become reachable

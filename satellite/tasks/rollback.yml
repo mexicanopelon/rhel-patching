@@ -5,7 +5,7 @@
     vm_name: "{{ vmware_guest_name | default(inventory_hostname_short) }}"
 
 - name: Rollback - Revert to VMware snapshot
-  vmware.vmware.vmware_guest_snapshot:
+  vmware.vmware.snapshot:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
@@ -13,7 +13,7 @@
     name: "{{ vm_name }}"
     state: revert
     snapshot_name: "{{ upgrade_snapshot_name }}"
-    validate_certs: false
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   delegate_to: localhost
   when: upgrade_snapshot_name is defined
   register: snapshot_revert
@@ -27,13 +27,14 @@
     - snapshot_revert is failed
 
 - name: Rollback - Power on VM after snapshot revert
-  vmware.vmware.vmware_guest_powerstate:
+  vmware.vmware.guest_powerstate:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
     name: "{{ vm_name }}"
     state: powered-on
-    validate_certs: false
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   delegate_to: localhost
   when: upgrade_snapshot_name is defined
   register: vm_poweron
