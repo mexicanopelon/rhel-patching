@@ -1,0 +1,72 @@
+---
+- name: Get VM info from vCenter
+  community.vmware.vmware_guest_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ inventory_hostname_short }}"
+    validate_certs: false
+  register: vm_info
+  delegate_to: localhost
+
+- name: Step 2 - Shutdown the VM
+  community.vmware.vmware_guest_powerstate:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    name: "{{ inventory_hostname_short }}"
+    state: shutdown-guest
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Wait for VM to power off
+  community.vmware.vmware_guest_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ inventory_hostname_short }}"
+    validate_certs: false
+  register: vm_powerstate
+  until: vm_powerstate.instance.hw_power_status == "poweredOff"
+  retries: 30
+  delay: 10
+  delegate_to: localhost
+
+- name: Step 3 - Take VMware snapshot
+  community.vmware.vmware_guest_snapshot:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ inventory_hostname_short }}"
+    state: present
+    snapshot_name: "{{ snapshot_name }}"
+    description: "Pre-upgrade snapshot before RHEL {{ target_version }} upgrade"
+    memory_dump: false
+    quiesce: false
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Record snapshot name for rollback
+  ansible.builtin.set_fact:
+    upgrade_snapshot_name: "{{ snapshot_name }}"
+
+- name: Step 4 - Power on the VM
+  community.vmware.vmware_guest_powerstate:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    name: "{{ inventory_hostname_short }}"
+    state: powered-on
+    validate_certs: false
+  delegate_to: localhost
+
+- name: Wait for system to boot and become reachable
+  ansible.builtin.wait_for_connection:
+    delay: 30
+    timeout: 300
+
+- name: Regather facts after boot
+  ansible.builtin.setup:

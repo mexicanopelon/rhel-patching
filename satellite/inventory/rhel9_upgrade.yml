@@ -1,0 +1,21 @@
+# inventory/rhel9_upgrade.yml
+all:
+  children:
+    rhel9_servers:
+      children:
+        dev:
+          hosts:
+            dev-web01.example.com:
+            dev-app01.example.com:
+        staging:
+          hosts:
+            stg-web01.example.com:
+            stg-app01.example.com:
+        production:
+          hosts:
+            prod-web01.example.com:
+            prod-web02.example.com:
+            prod-app01.example.com:
+      vars:
+        ansible_user: ansible
+        ansible_become: true

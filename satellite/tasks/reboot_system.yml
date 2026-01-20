@@ -1,0 +1,23 @@
+---
+- name: Check if reboot is required
+  ansible.builtin.command: needs-restarting -r
+  register: needs_reboot
+  changed_when: false
+  failed_when: false
+
+- name: Step 7 - Reboot the system
+  ansible.builtin.reboot:
+    reboot_timeout: "{{ reboot_timeout }}"
+    pre_reboot_delay: 30
+    post_reboot_delay: 60
+    msg: "Rebooting for RHEL {{ target_version }} upgrade"
+    test_command: cat /etc/redhat-release
+  when: needs_reboot.rc == 1 or force_reboot | default(true)
+
+- name: Wait for system to stabilize
+  ansible.builtin.wait_for_connection:
+    delay: 30
+    timeout: 300
+
+- name: Regather facts after reboot
+  ansible.builtin.setup:

@@ -1,0 +1,19 @@
+all:
+  children:
+    rhel9_servers:
+      hosts:
+        server01.example.com:
+          vmware_guest_name: "server01"
+        server02.example.com:
+          vmware_guest_name: "server02"
+      vars:
+        ansible_user: ansible
+        ansible_become: true
+        xymon_server: "xymon.example.com"
+        satellite_server: "satellite.example.com"
+        satellite_org: "Your_Org"
+        satellite_activation_key: "rhel9-9.7-key"
+        vcenter_hostname: "vcenter.example.com"
+        vcenter_datacenter: "Datacenter"
+        vcenter_username: "svc_ansible@vsphere.local"
+        vcenter_password: "{{ vault_vcenter_password }}"

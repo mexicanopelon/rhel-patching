@@ -1,0 +1,102 @@
+---
+- name: Regather facts after upgrade
+  ansible.builtin.setup:
+
+- name: Verify target version reached
+  ansible.builtin.assert:
+    that:
+      - ansible_distribution_version is version(target_version, '>=')
+    fail_msg: "Upgrade failed - current version {{ ansible_distribution_version }}, expected {{ target_version }}"
+    success_msg: "Successfully upgraded to RHEL {{ ansible_distribution_version }}"
+  when: not ansible_check_mode
+
+- name: Skip version check in check mode
+  ansible.builtin.debug:
+    msg: "CHECK MODE: Skipping version validation - would verify upgrade to {{ target_version }}"
+  when: ansible_check_mode
+
+- name: Check subscription status
+  ansible.builtin.command: subscription-manager status
+  register: post_subscription
+  changed_when: false
+  failed_when: false
+
+- name: Verify subscription is valid
+  ansible.builtin.assert:
+    that:
+      - post_subscription.rc == 0
+      - "'Registered' in post_subscription.stdout or 'Current' in post_subscription.stdout"
+    fail_msg: "Subscription check failed: {{ post_subscription.stdout }}"
+    success_msg: "Subscription status OK"
+
+- name: Define required and optional services
+  ansible.builtin.set_fact:
+    required_services:
+      - sshd
+    optional_services:
+      - chronyd
+      - rsyslog
+      - NetworkManager
+
+- name: Verify required services are running
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+  register: required_services_status
+  loop: "{{ required_services }}"
+  failed_when: required_services_status.status.ActiveState != "active"
+
+- name: Check optional services status
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+  register: optional_services_status
+  loop: "{{ optional_services }}"
+  failed_when: false
+  changed_when: false
+
+- name: Report optional services not running
+  ansible.builtin.debug:
+    msg: "INFO: Optional service {{ item.item }} is {{ item.status.ActiveState }}"
+  loop: "{{ optional_services_status.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  when: item.status.ActiveState != "active"
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Find failed services
+  ansible.builtin.set_fact:
+    failed_services: "{{ ansible_facts.services | dict2items | selectattr('value.status', 'eq', 'failed') | map(attribute='key') | list }}"
+
+- name: Warn on failed services
+  ansible.builtin.debug:
+    msg: "WARNING: Failed services detected: {{ failed_services }}"
+  when: failed_services | length > 0
+
+- name: Verify SELinux status
+  ansible.builtin.command: getenforce
+  register: selinux_status
+  changed_when: false
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: rpm
+
+- name: Set post package count
+  ansible.builtin.set_fact:
+    post_package_count: "{{ ansible_facts.packages | length }}"
+
+- name: Display upgrade summary
+  ansible.builtin.debug:
+    msg: |
+      ========== UPGRADE SUMMARY ==========
+      Hostname: {{ inventory_hostname }}
+      Previous Version: {{ pre_upgrade_state.version | default('unknown') }}
+      Current Version: {{ ansible_distribution_version }}
+      Previous Kernel: {{ pre_upgrade_state.kernel | default('unknown') }}
+      Current Kernel: {{ ansible_kernel }}
+      Packages Before: {{ pre_upgrade_state.package_count | default('unknown') }}
+      Packages After: {{ post_package_count }}
+      SELinux: {{ selinux_status.stdout }}
+      Failed Services: {{ failed_services | length }}
+      =====================================

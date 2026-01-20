@@ -1,0 +1,44 @@
+================================================================================
+RHEL MINOR VERSION UPGRADE REPORT
+================================================================================
+Hostname:           {{ ansible_fqdn }}
+Upgrade Date:       {{ ansible_date_time.iso8601 }}
+================================================================================
+
+VERSION INFORMATION
+-------------------
+Previous Version:   {{ pre_upgrade_state.version }}
+Target Version:     {{ target_version }}
+Current Version:    {{ ansible_distribution_version }}
+Upgrade Status:     {{ 'SUCCESS' if ansible_distribution_version is version(target_version, '>=') else 'FAILED' }}
+
+KERNEL INFORMATION
+------------------
+Previous Kernel:    {{ pre_upgrade_kernel }}
+Current Kernel:     {{ ansible_kernel }}
+Kernel Updated:     {{ 'Yes' if pre_upgrade_kernel != ansible_kernel else 'No' }}
+
+PACKAGE INFORMATION
+-------------------
+Packages Before:    {{ pre_upgrade_state.package_count }}
+Packages After:     {{ post_package_count.stdout }}
+Net Change:         {{ post_package_count.stdout | int - pre_upgrade_state.package_count | int }}
+
+SYSTEM STATUS
+-------------
+SELinux:            {{ selinux_status.stdout }}
+Subscription:       {{ 'Active' if 'Overall Status: Current' in post_subscription.stdout else 'Check Required' }}
+Release Lock:       {{ post_release.stdout }}
+Failed Services:    {{ failed_services_count.stdout }}
+
+{% if failed_services_count.stdout | int > 0 %}
+FAILED SERVICES
+---------------
+{{ failed_services_list.stdout }}
+{% endif %}
+
+BACKUP LOCATION
+---------------
+/var/backup/upgrade-{{ ansible_date_time.date }}/
+
+================================================================================

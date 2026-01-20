@@ -1,0 +1,70 @@
+---
+- name: Upgrade RHEL 9.x to 9.7 with Security Patches
+  hosts: rhel9_servers
+  become: true
+  gather_facts: true
+  serial: "{{ batch_size | default(1) }}"
+  max_fail_percentage: 0
+  vars:
+    target_version: "9.7"
+    reboot_timeout: 900
+    rollback_on_failure: true
+    xymon_server: "xymon.example.com"
+    satellite_server: "satellite.example.com"
+    satellite_org: "Your_Org"
+    satellite_activation_key: "rhel9-9.7-key"
+    content_view: "RHEL9_9.7_Production"
+    vcenter_hostname: "vcenter.example.com"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "{{ vault_vcenter_password }}"
+    vcenter_datacenter: "Datacenter"
+    snapshot_name: "pre_upgrade_{{ ansible_date_time.date }}"
+
+  pre_tasks:
+    - name: Validate target is RHEL 9.5 or 9.6
+      ansible.builtin.assert:
+        that:
+          - ansible_distribution == "RedHat"
+          - ansible_distribution_version is version('9.5', '>=')
+          - ansible_distribution_version is version('9.7', '<')
+        fail_msg: "This playbook targets RHEL 9.5 or 9.6 systems only. Current version: {{ ansible_distribution_version }}"
+
+    - name: Display current system info
+      ansible.builtin.debug:
+        msg: "Upgrading {{ inventory_hostname }} from RHEL {{ ansible_distribution_version }} to {{ target_version }}"
+
+  tasks:
+    - name: Upgrade block with rollback
+      block:
+        - name: Pre-upgrade preparation
+          ansible.builtin.include_tasks: tasks/pre_upgrade_checks.yml
+
+        - name: Step 1 - Disable Xymon monitoring
+          ansible.builtin.include_tasks: tasks/disable_xymon.yml
+
+        - name: Step 2-4 - VMware snapshot workflow
+          ansible.builtin.include_tasks: tasks/vmware_snapshot.yml
+
+        - name: Step 5 - Register with Satellite
+          ansible.builtin.include_tasks: tasks/register_satellite.yml
+
+        - name: Step 6 - Apply updates
+          ansible.builtin.include_tasks: tasks/apply_updates.yml
+
+        - name: Step 7 - Reboot system
+          ansible.builtin.include_tasks: tasks/reboot_system.yml
+
+        - name: Post-upgrade validation
+          ansible.builtin.include_tasks: tasks/post_upgrade_validation.yml
+
+        - name: Re-enable Xymon monitoring
+          ansible.builtin.include_tasks: tasks/enable_xymon.yml
+
+      rescue:
+        - name: Upgrade failed - attempt rollback
+          ansible.builtin.include_tasks: tasks/rollback.yml
+          when: rollback_on_failure | bool
+
+        - name: Fail the play
+          ansible.builtin.fail:
+            msg: "Upgrade failed on {{ inventory_hostname }}. Check logs for details."

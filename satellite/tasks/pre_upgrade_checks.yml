@@ -1,0 +1,97 @@
+---
+- name: Check subscription status
+  ansible.builtin.command: subscription-manager status
+  register: subscription_status
+  changed_when: false
+  failed_when: false
+
+- name: Display subscription status
+  ansible.builtin.debug:
+    msg: "{{ subscription_status.stdout }}"
+
+- name: Verify active subscription
+  ansible.builtin.fail:
+    msg: "System is not properly subscribed: {{ subscription_status.stdout }}"
+  when:
+    - subscription_status.rc != 0
+    - "'Current' not in subscription_status.stdout"
+
+- name: Gather mount facts
+  ansible.builtin.setup:
+    gather_subset:
+      - mounts
+
+- name: Set disk space requirements
+  ansible.builtin.set_fact:
+    disk_requirements:
+      "/": 3
+      "/var": 3
+      "/boot": 0.5
+
+- name: Validate disk space requirements
+  ansible.builtin.fail:
+    msg: "Insufficient disk space on {{ item.mount }}: {{ (item.size_available / 1073741824) | round(1) }}GB available, need at least {{ disk_requirements[item.mount] }}GB"
+  when:
+    - item.mount in disk_requirements
+    - (item.size_available / 1073741824) < disk_requirements[item.mount]
+  loop: "{{ ansible_mounts }}"
+  loop_control:
+    label: "{{ item.mount }}"
+
+- name: Check for running database services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+  register: db_services
+  loop:
+    - postgresql
+    - mariadb
+    - mysqld
+    - oracle-database
+  failed_when: false
+  changed_when: false
+
+- name: Warn about running databases
+  ansible.builtin.debug:
+    msg: "WARNING: {{ item.item }} is running. Consider stopping before upgrade."
+  when: item.status.ActiveState | default('inactive') == "active"
+  loop: "{{ db_services.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Store running services list
+  ansible.builtin.set_fact:
+    pre_upgrade_services: "{{ ansible_facts.services | dict2items | selectattr('value.state', 'eq', 'running') | map(attribute='key') | list }}"
+
+- name: Check for held or locked packages
+  ansible.builtin.command: dnf versionlock list
+  register: versionlock_list
+  changed_when: false
+  failed_when: false
+
+- name: Display held packages warning
+  ansible.builtin.debug:
+    msg: "WARNING: Version-locked packages found: {{ versionlock_list.stdout }}"
+  when: versionlock_list.stdout | length > 0
+
+- name: Record current kernel
+  ansible.builtin.set_fact:
+    pre_upgrade_kernel: "{{ ansible_kernel }}"
+
+- name: Gather package facts
+  ansible.builtin.package_facts:
+    manager: rpm
+
+- name: Set package count fact
+  ansible.builtin.set_fact:
+    pre_package_count: "{{ ansible_facts.packages | length }}"
+
+- name: Store pre-upgrade state
+  ansible.builtin.set_fact:
+    pre_upgrade_state:
+      kernel: "{{ ansible_kernel }}"
+      version: "{{ ansible_distribution_version }}"
+      package_count: "{{ pre_package_count }}"
+      timestamp: "{{ ansible_date_time.iso8601 }}"

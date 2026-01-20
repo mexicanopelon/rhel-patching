@@ -1,0 +1,67 @@
+---
+- name: Check current registration status
+  ansible.builtin.command: subscription-manager identity
+  register: current_registration
+  changed_when: false
+  failed_when: false
+
+- name: Display current registration
+  ansible.builtin.debug:
+    msg: "Current registration: {{ current_registration.stdout | default('Not registered') }}"
+
+- name: Unregister from current Satellite/subscription
+  ansible.builtin.command: subscription-manager unregister
+  when: current_registration.rc == 0
+  changed_when: true
+  failed_when: false
+
+- name: Clean subscription manager
+  ansible.builtin.command: subscription-manager clean
+  changed_when: true
+
+- name: Remove old Katello CA if present
+  ansible.builtin.dnf:
+    name: katello-ca-consumer-*
+    state: absent
+  failed_when: false
+
+- name: Install Katello CA from Satellite server
+  ansible.builtin.dnf:
+    name: "https://{{ satellite_server }}/pub/katello-ca-consumer-latest.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+
+- name: Register with Satellite using activation key
+  ansible.builtin.command: >
+    subscription-manager register
+    --org="{{ satellite_org }}"
+    --activationkey="{{ satellite_activation_key }}"
+    --force
+  register: satellite_registration
+  changed_when: true
+
+- name: Display registration result
+  ansible.builtin.debug:
+    msg: "{{ satellite_registration.stdout }}"
+
+- name: Verify registration
+  ansible.builtin.command: subscription-manager identity
+  register: new_registration
+  changed_when: false
+
+- name: Display new registration
+  ansible.builtin.debug:
+    msg: "Registered as: {{ new_registration.stdout }}"
+
+- name: Set release version to target
+  ansible.builtin.command: subscription-manager release --set={{ target_version }}
+  changed_when: true
+  when: set_release_version | default(true)
+
+- name: Clean DNF cache
+  ansible.builtin.command: dnf clean all
+  changed_when: true
+
+- name: Refresh subscription
+  ansible.builtin.command: subscription-manager refresh
+  changed_when: true

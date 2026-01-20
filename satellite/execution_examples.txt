@@ -1,0 +1,37 @@
+# Dry run
+ansible-playbook upgrade_rhel9_to_97.yml -i inventory/rhel9_upgrade.yml --check
+
+# Upgrade dev environment first
+ansible-playbook upgrade_rhel9_to_97.yml -i inventory/rhel9_upgrade.yml --limit dev
+
+# Upgrade with larger batch size (2 at a time)
+ansible-playbook upgrade_rhel9_to_97.yml -i inventory/rhel9_upgrade.yml -e batch_size=2
+
+# Skip security patches (not recommended)
+ansible-playbook upgrade_rhel9_to_97.yml -i inventory/rhel9_upgrade.yml -e apply_security_patches=false
+
+# Single host upgrade
+ansible-playbook upgrade_rhel9_to_97.yml -i inventory/rhel9_upgrade.yml --limit prod-web01.example.com
+
+# Upgrade with verbose output
+ansible-playbook upgrade_rhel9_to_97.yml -i inventory/rhel9_upgrade.yml -vv
+```
+
+## Directory Structure
+```
+rhel9-upgrade/
+├── upgrade_rhel9_to_97.yml
+├── inventory/
+│   └── rhel9_upgrade.yml
+├── tasks/
+│   ├── pre_upgrade_checks.yml
+│   ├── create_backup.yml
+│   ├── set_release_version.yml
+│   ├── apply_security_patches.yml
+│   ├── perform_upgrade.yml
+│   ├── reboot_system.yml
+│   ├── post_upgrade_validation.yml
+│   └── rollback.yml
+├── templates/
+│   └── upgrade_report.j2
+└── reports/

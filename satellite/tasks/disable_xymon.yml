@@ -1,0 +1,29 @@
+---
+- name: Check if Xymon client is installed
+  ansible.builtin.stat:
+    path: /usr/lib/xymon/client/bin/xymon
+  register: xymon_client
+
+- name: Disable Xymon monitoring
+  when: xymon_client.stat.exists
+  block:
+    - name: Send Xymon disable message
+      ansible.builtin.command: >
+        /usr/lib/xymon/client/bin/xymon {{ xymon_server }}
+        "disable {{ ansible_hostname }}.* {{ disable_duration | default('4h') }} Scheduled RHEL upgrade to {{ target_version }}"
+      changed_when: true
+
+    - name: Stop Xymon client service
+      ansible.builtin.systemd:
+        name: xymon-client
+        state: stopped
+      failed_when: false
+
+    - name: Record Xymon was disabled
+      ansible.builtin.set_fact:
+        xymon_was_disabled: true
+
+- name: Skip Xymon disable - not installed
+  ansible.builtin.debug:
+    msg: "Xymon client not installed - skipping"
+  when: not xymon_client.stat.exists

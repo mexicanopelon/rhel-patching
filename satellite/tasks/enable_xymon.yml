@@ -1,0 +1,20 @@
+---
+- name: Re-enable Xymon monitoring
+  when: xymon_was_disabled | default(false)
+  block:
+    - name: Start Xymon client service
+      ansible.builtin.systemd:
+        name: xymon-client
+        state: started
+        enabled: true
+      failed_when: false
+
+    - name: Send Xymon enable message
+      ansible.builtin.command: >
+        /usr/lib/xymon/client/bin/xymon {{ xymon_server }}
+        "enable {{ ansible_hostname }}.*"
+      changed_when: true
+
+    - name: Notify upgrade complete
+      ansible.builtin.debug:
+        msg: "Xymon monitoring re-enabled for {{ inventory_hostname }}"

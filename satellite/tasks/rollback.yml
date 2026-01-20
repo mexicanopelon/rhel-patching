@@ -1,0 +1,88 @@
+---
+- name: Set rollback info facts
+  ansible.builtin.set_fact:
+    rollback_original_version: "{{ pre_upgrade_state.version | default('unknown') }}"
+    vm_name: "{{ vmware_guest_name | default(inventory_hostname_short) }}"
+
+- name: Rollback - Revert to VMware snapshot
+  community.vmware.vmware_guest_snapshot:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ vm_name }}"
+    state: revert
+    snapshot_name: "{{ upgrade_snapshot_name }}"
+    validate_certs: false
+  delegate_to: localhost
+  when: upgrade_snapshot_name is defined
+  register: snapshot_revert
+  failed_when: false
+
+- name: Log snapshot revert failure
+  ansible.builtin.debug:
+    msg: "WARNING: Snapshot revert failed - {{ snapshot_revert.msg | default('unknown error') }}"
+  when:
+    - snapshot_revert is defined
+    - snapshot_revert is failed
+
+- name: Rollback - Power on VM after snapshot revert
+  community.vmware.vmware_guest_powerstate:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    name: "{{ vm_name }}"
+    state: powered-on
+    validate_certs: false
+  delegate_to: localhost
+  when: upgrade_snapshot_name is defined
+  register: vm_poweron
+  failed_when: false
+
+- name: Log VM power on failure
+  ansible.builtin.debug:
+    msg: "WARNING: VM power on failed - {{ vm_poweron.msg | default('unknown error') }}"
+  when:
+    - vm_poweron is defined
+    - vm_poweron is failed
+
+- name: Rollback - Wait for system to boot
+  ansible.builtin.wait_for_connection:
+    delay: 60
+    timeout: 300
+  register: wait_result
+  failed_when: false
+
+- name: Log connection failure
+  ansible.builtin.debug:
+    msg: "WARNING: System did not become reachable after rollback"
+  when:
+    - wait_result is defined
+    - wait_result is failed
+
+- name: Rollback - Re-enable Xymon monitoring
+  ansible.builtin.command: >-
+    /usr/lib/xymon/client/bin/xymon {{ xymon_server }}
+    "enable {{ ansible_hostname }}.*"
+  changed_when: true
+  register: xymon_enable
+  failed_when: false
+  when: xymon_was_disabled | default(false)
+
+- name: Log Xymon enable failure
+  ansible.builtin.debug:
+    msg: "WARNING: Failed to re-enable Xymon - {{ xymon_enable.stderr | default('unknown error') }}"
+  when:
+    - xymon_enable is defined
+    - xymon_enable is failed
+
+- name: Rollback notification
+  ansible.builtin.debug:
+    msg: |
+      CRITICAL: Upgrade failed and rollback was attempted.
+      VM: {{ vm_name }}
+      Snapshot: {{ upgrade_snapshot_name | default('unknown') }}
+      Snapshot Revert: {{ 'SUCCESS' if snapshot_revert is succeeded else 'FAILED' }}
+      VM Power On: {{ 'SUCCESS' if vm_poweron is succeeded else 'FAILED' }}
+      System Reachable: {{ 'YES' if wait_result is succeeded else 'NO' }}
+      Manual review required for {{ inventory_hostname }}.
