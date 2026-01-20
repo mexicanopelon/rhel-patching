@@ -31,14 +31,17 @@
     state: present
     disable_gpg_check: true
 
-- name: Register with Satellite using activation key
+- name: Register with Satellite using AAP credential
   ansible.builtin.command: >
     subscription-manager register
-    --org="{{ satellite_org }}"
-    --activationkey="{{ satellite_activation_key }}"
+    --org="{{ satellite_org_id }}"
+    --serverurl="{{ satellite_server }}"
+    --username="{{ satellite_username }}"
+    --password="{{ satellite_password }}"
     --force
   register: satellite_registration
   changed_when: true
+  no_log: true
 
 - name: Display registration result
   ansible.builtin.debug:
