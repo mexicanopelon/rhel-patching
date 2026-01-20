@@ -14,12 +14,18 @@
     set_release_version: true
     vcenter_datacenter: "Orl-Lab-DC"
     vcenter_validate_certs: false
-    vcenter_hostname: orl-vcenter6.presidiolab.local
-    vcenter_username: cdelapaz
-    # vcenter_password: from VMware credential
+    vcenter_hostname: "{{ lookup('env', 'VMWARE_HOST') }}"
+    vcenter_username: "{{ lookup('env', 'VMWARE_USER') }}"
+    vcenter_password: "{{ lookup('env', 'VMWARE_PASSWORD') }}"
 
-    # Satellite settings
-    satellite_url: https://satellite.qjdst.sandbox2843.opentlc.com
+    #   hostname: "{{ lookup('env', 'VMWARE_HOST') }}"
+    # username: "{{ lookup('env', 'VMWARE_USER') }}"
+    # password: "{{ lookup('env', 'VMWARE_PASSWORD') }}"
+
+    # # Satellite settings
+    # satellite_url: https://satellite.qjdst.sandbox2843.opentlc.com
+
+
     # These come from AAP credentials or surveys
     # xymon_server: from survey or inventory
     # satellite_url: from Red Hat Satellite credential
