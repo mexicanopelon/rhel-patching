@@ -1,0 +1,18 @@
+---
+# VMware settings
+vcenter_datacenter: "orl-vcenter6.presidiolab.local"
+vcenter_validate_certs: false
+
+# Xymon settings (optional)
+xymon_server: "xymon.example.com"
+
+# Upgrade settings
+target_version: "9.7"
+reboot_timeout: 900
+rollback_on_failure: true
+
+# Disk requirements
+disk_requirements:
+  "/": 3
+  "/var": 3
+  "/boot": 0.5

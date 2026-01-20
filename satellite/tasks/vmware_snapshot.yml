@@ -1,12 +1,17 @@
 ---
+- name: Set VM name fact
+  ansible.builtin.set_fact:
+    vm_name: "{{ vmware_guest_name | default(inventory_hostname_short) }}"
+    snapshot_name: "pre_upgrade_{{ ansible_date_time.date }}"
+
 - name: Get VM info from vCenter
   community.vmware.vmware_guest_info:
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     datacenter: "{{ vcenter_datacenter }}"
-    name: "{{ inventory_hostname_short }}"
-    validate_certs: false
+    name: "{{ vm_name }}"
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   register: vm_info
   delegate_to: localhost
 
@@ -15,9 +20,9 @@
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
-    name: "{{ inventory_hostname_short }}"
+    name: "{{ vm_name }}"
     state: shutdown-guest
-    validate_certs: false
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   delegate_to: localhost
 
 - name: Wait for VM to power off
@@ -26,8 +31,8 @@
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     datacenter: "{{ vcenter_datacenter }}"
-    name: "{{ inventory_hostname_short }}"
-    validate_certs: false
+    name: "{{ vm_name }}"
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   register: vm_powerstate
   until: vm_powerstate.instance.hw_power_status == "poweredOff"
   retries: 30
@@ -40,13 +45,13 @@
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
     datacenter: "{{ vcenter_datacenter }}"
-    name: "{{ inventory_hostname_short }}"
+    name: "{{ vm_name }}"
     state: present
     snapshot_name: "{{ snapshot_name }}"
     description: "Pre-upgrade snapshot before RHEL {{ target_version }} upgrade"
     memory_dump: false
     quiesce: false
-    validate_certs: false
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   delegate_to: localhost
 
 - name: Record snapshot name for rollback
@@ -58,9 +63,9 @@
     hostname: "{{ vcenter_hostname }}"
     username: "{{ vcenter_username }}"
     password: "{{ vcenter_password }}"
-    name: "{{ inventory_hostname_short }}"
+    name: "{{ vm_name }}"
     state: powered-on
-    validate_certs: false
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   delegate_to: localhost
 
 - name: Wait for system to boot and become reachable

@@ -9,33 +9,19 @@
     target_version: "9.7"
     reboot_timeout: 900
     rollback_on_failure: true
-    disable_duration: "4h"
-    set_release_version: true
-    # These come from AAP credentials or surveys
-    # xymon_server: from survey or inventory
-    # satellite_url: from Red Hat Satellite credential
-    # satellite_org_id: from Red Hat Satellite credential
-    # satellite_activation_key: from survey or inventory
-    # vcenter_hostname: from VMware credential
-    # vcenter_username: from VMware credential
-    # vcenter_password: from VMware credential
-    # vcenter_datacenter: from survey or inventory
+    xymon_server: "xymon.example.com"
+    satellite_server: "{{ satellite_hostname }}"
+    satellite_org_id: "{{ satellite_org_id }}"
+    satellite_username: "{{ satellite_username }}"
+    satellite_password: "{{ satellite_password }}"
+    content_view: "RHEL9_9.7_Production"
+    vcenter_hostname: "{{ vcenter_hostname }}"
+    vcenter_datacenter: "orl-vcenter6.presidiolab.local"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    snapshot_name: "pre_upgrade_{{ ansible_date_time.date }}"
 
   pre_tasks:
-    - name: Validate required variables
-      ansible.builtin.assert:
-        that:
-          - satellite_url is defined
-          - satellite_org_id is defined
-          - satellite_activation_key is defined
-          - vcenter_hostname is defined or vcenter_server is defined
-        fail_msg: "Required credentials or variables are missing. Check AAP credential and survey configuration."
-
-    - name: Set vCenter hostname from credential
-      ansible.builtin.set_fact:
-        vcenter_hostname: "{{ vcenter_server | default(vcenter_hostname) }}"
-      when: vcenter_server is defined
-
     - name: Validate target is RHEL 9.5 or 9.6
       ansible.builtin.assert:
         that:
@@ -56,7 +42,6 @@
 
         - name: Step 1 - Disable Xymon monitoring
           ansible.builtin.include_tasks: tasks/disable_xymon.yml
-          when: xymon_server is defined
 
         - name: Step 2-4 - VMware snapshot workflow
           ansible.builtin.include_tasks: tasks/vmware_snapshot.yml
@@ -75,7 +60,6 @@
 
         - name: Re-enable Xymon monitoring
           ansible.builtin.include_tasks: tasks/enable_xymon.yml
-          when: xymon_server is defined
 
       rescue:
         - name: Upgrade failed - attempt rollback

@@ -19,25 +19,27 @@
   ansible.builtin.command: subscription-manager clean
   changed_when: true
 
-- name: Remove old Katello CA if present
-  ansible.builtin.dnf:
-    name: katello-ca-consumer-*
-    state: absent
-  failed_when: false
+# - name: Remove old Katello CA if present
+#   ansible.builtin.dnf:
+#     name: katello-ca-consumer-*
+#     state: absent
+#   failed_when: false
 
-- name: Install Katello CA from Satellite server
-  ansible.builtin.dnf:
-    name: "https://{{ satellite_server }}/pub/katello-ca-consumer-latest.noarch.rpm"
-    state: present
-    disable_gpg_check: true
+- name: Extract Satellite hostname from URL
+  ansible.builtin.set_fact:
+    satellite_hostname: "{{ satellite_url | regex_replace('^https?://', '') | regex_replace('/$', '') }}"
 
-- name: Register with Satellite using AAP credential
+# - name: Install Katello CA from Satellite server
+#   ansible.builtin.dnf:
+#     name: "https://{{ satellite_hostname }}/pub/katello-ca-consumer-latest.noarch.rpm"
+#     state: present
+#     disable_gpg_check: true
+
+- name: Register with Satellite using activation key
   ansible.builtin.command: >
     subscription-manager register
     --org="{{ satellite_org_id }}"
-    --serverurl="{{ satellite_server }}"
-    --username="{{ satellite_username }}"
-    --password="{{ satellite_password }}"
+    --activationkey="{{ satellite_activation_key }}"
     --force
   register: satellite_registration
   changed_when: true
@@ -45,7 +47,8 @@
 
 - name: Display registration result
   ansible.builtin.debug:
-    msg: "{{ satellite_registration.stdout }}"
+    msg: "Registration completed successfully"
+  when: satellite_registration.rc == 0
 
 - name: Verify registration
   ansible.builtin.command: subscription-manager identity
