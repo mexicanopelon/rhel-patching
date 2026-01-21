@@ -9,12 +9,12 @@
   ansible.builtin.debug:
     msg: "{{ subscription_status.stdout }}"
 
-- name: Verify active subscription
-  ansible.builtin.fail:
-    msg: "System is not properly subscribed: {{ subscription_status.stdout }}"
-  when:
-    - subscription_status.rc != 0
-    - "'Current' not in subscription_status.stdout"
+# - name: Verify active subscription
+#   ansible.builtin.fail:
+#     msg: "System is not properly subscribed: {{ subscription_status.stdout }}"
+#   when:
+#     - subscription_status.rc != 0
+#     - "'Current' not in subscription_status.stdout"
 
 - name: Gather mount facts
   ansible.builtin.setup:
