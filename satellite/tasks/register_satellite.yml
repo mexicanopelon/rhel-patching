@@ -38,12 +38,10 @@
 - name: Register with Satellite using activation key
   ansible.builtin.command: >
     subscription-manager register
-    --org="{{ satellite_org_id }}"
-    --activationkey="{{ satellite_activation_key }}"
     --force
   register: satellite_registration
   changed_when: true
-  no_log: true
+  # no_log: true
 
 - name: Display registration result
   ansible.builtin.debug:
