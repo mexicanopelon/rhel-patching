@@ -77,10 +77,15 @@
 #     force_register: true
 #   register: satellite_registration
 
+# - name: Display registration result
+#   ansible.builtin.debug:
+#     msg: "Registration completed successfully"
+#   when: satellite_registration.rc == 0
+
 - name: Display registration result
   ansible.builtin.debug:
-    msg: "Registration completed successfully"
-  when: satellite_registration.rc == 0
+    var: satellite_registration
+  when: satellite_registration is defined
 
 - name: Verify registration
   ansible.builtin.command: subscription-manager identity
