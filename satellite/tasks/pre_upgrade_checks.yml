@@ -1,12 +1,12 @@
 ---
 - name: List all environment variables
-  ansible.builtin.command: env
+  ansible.builtin.shell: env | sort
   register: env_vars
 
 - name: Display environment variables
   ansible.builtin.debug:
     var: env_vars.stdout_lines
-    
+
 - name: Check subscription status
   ansible.builtin.command: subscription-manager status
   register: subscription_status
