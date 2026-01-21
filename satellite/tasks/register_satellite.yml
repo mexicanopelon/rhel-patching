@@ -51,11 +51,18 @@
 
 - name: Register with Satellite
   community.general.redhat_subscription:
-    server_hostname: "{{ satellite_server }}"
-    username: "{{ satellite_username }}"
-    password: "{{ satellite_password }}"
-    force_register: true
-  register: satellite_registration
+    state: present
+    server_hostname: rhel-satellite-aap.presidiolab.local
+    activationkey: rhel9-key
+    org_id: Presidio
+
+# - name: Register with Satellite
+#   community.general.redhat_subscription:
+#     server_hostname: "{{ satellite_server }}"
+#     username: "{{ satellite_username }}"
+#     password: "{{ satellite_password }}"
+#     force_register: true
+#   register: satellite_registration
 
 - name: Display registration result
   ansible.builtin.debug:
