@@ -49,6 +49,12 @@
     line: "10.1.21.197   rhel-satellite-aap.presidiolab.local rhel-satellite-aap"
     state: present
 
+- name: Install Satellite CA certificate
+  ansible.builtin.dnf:
+    name: "https://rhel-satellite-aap.presidiolab.local/pub/katello-ca-consumer-latest.noarch.rpm"
+    state: present
+    disable_gpg_check: true
+
 - name: Register with Satellite
   community.general.redhat_subscription:
     state: present
