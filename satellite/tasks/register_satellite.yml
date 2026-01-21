@@ -49,9 +49,15 @@
     line: "10.1.21.197   rhel-satellite-aap.presidiolab.local rhel-satellite-aap"
     state: present
 
+- name: Download Satellite CA certificate RPM
+  ansible.builtin.get_url:
+    url: https://rhel-satellite-aap.presidiolab.local/pub/katello-ca-consumer-latest.noarch.rpm
+    dest: /tmp/katello-ca-consumer-latest.noarch.rpm
+    validate_certs: false
+
 - name: Install Satellite CA certificate
   ansible.builtin.dnf:
-    name: "https://rhel-satellite-aap.presidiolab.local/pub/katello-ca-consumer-latest.noarch.rpm"
+    name: /tmp/katello-ca-consumer-latest.noarch.rpm
     state: present
     disable_gpg_check: true
 
