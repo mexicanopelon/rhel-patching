@@ -25,9 +25,9 @@
 #     state: absent
 #   failed_when: false
 
-- name: Extract Satellite hostname from URL
-  ansible.builtin.set_fact:
-    satellite_hostname: "{{ satellite_url | regex_replace('^https?://', '') | regex_replace('/$', '') }}"
+# - name: Extract Satellite hostname from URL
+#   ansible.builtin.set_fact:
+#     satellite_hostname: "{{ satellite_server | regex_replace('^https?://', '') | regex_replace('/$', '') }}"
 
 # - name: Install Katello CA from Satellite server
 #   ansible.builtin.dnf:
