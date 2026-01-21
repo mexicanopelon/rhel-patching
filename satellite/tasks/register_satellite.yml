@@ -45,7 +45,7 @@
 
 - name: Register with Satellite
   community.general.redhat_subscription:
-    server_hostname: "{{ satellite_url }}"
+    server_hostname: "{{ satellite_server }}"
     username: "{{ satellite_username }}"
     password: "{{ satellite_password }}"
     force_register: true
