@@ -1,6 +1,7 @@
 ---
 # VMware settings
 vcenter_datacenter: "Orl-Lab-DC"
+vcenter_folder: "Carlos De La Paz"
 vcenter_validate_certs: false
 vcenter_hostname: orl-vcenter6.presidiolab.local
 vcenter_username: cdelapaz

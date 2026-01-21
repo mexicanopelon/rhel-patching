@@ -56,6 +56,7 @@
     password: "{{ vcenter_password }}"
     datacenter: "{{ vcenter_datacenter }}"
     name: "{{ vm_name }}"
+    folder: "{{ vcenter_folder }}" 
     state: present
     snapshot_name: "{{ snapshot_name }}"
     description: "Pre-upgrade snapshot before RHEL {{ target_version }} upgrade"
