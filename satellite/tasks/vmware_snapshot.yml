@@ -49,15 +49,6 @@
   delay: 10
   delegate_to: localhost
 
-
-- name: Gather guest vm info
-  vmware.vmware.guest_info:
-    hostname: "{{ vcenter_hostname }}"
-    username: "{{ vcenter_username }}"
-    password: "{{ vcenter_password }}"
-    validate_certs: false
-    guest_name: "my_vm"
-
 - name: Step 3 - Take VMware snapshot
   vmware.vmware.vm_snapshot:
     hostname: "{{ vcenter_hostname }}"
