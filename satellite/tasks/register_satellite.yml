@@ -35,13 +35,21 @@
 #     state: present
 #     disable_gpg_check: true
 
-- name: Register with Satellite using activation key
-  ansible.builtin.command: >
-    subscription-manager register
-    --force
+# - name: Register with Satellite using activation key
+#   ansible.builtin.command: >
+#     subscription-manager register
+#     --force
+#   register: satellite_registration
+#   changed_when: true
+#   # no_log: true
+
+- name: Register with Satellite
+  community.general.redhat_subscription:
+    server_hostname: "{{ satellite_url }}"
+    username: "{{ satellite_username }}"
+    password: "{{ satellite_password }}"
+    force_register: true
   register: satellite_registration
-  changed_when: true
-  # no_log: true
 
 - name: Display registration result
   ansible.builtin.debug:
