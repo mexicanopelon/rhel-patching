@@ -18,6 +18,7 @@
     vcenter_hostname: "{{ lookup('env', 'VMWARE_HOST') }}"
     vcenter_username: "{{ lookup('env', 'VMWARE_USER') }}"
     vcenter_password: "{{ lookup('env', 'VMWARE_PASSWORD') }}"
+    satellite_url: https://satellite.qjdst.sandbox2843.opentlc.com
 
     #   hostname: "{{ lookup('env', 'VMWARE_HOST') }}"
     # username: "{{ lookup('env', 'VMWARE_USER') }}"
