@@ -44,7 +44,7 @@
     name: "{{ vm_name }}"
     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
   register: vm_powerstate
-  until: vm_powerstate.guest_info.hw_power_status == "poweredOff"
+  until: vm_powerstate.guests[0].hw_power_status == "poweredOff"
   retries: 30
   delay: 10
   delegate_to: localhost
