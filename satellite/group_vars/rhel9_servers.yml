@@ -12,7 +12,6 @@ satellite_url: https://satellite.qjdst.sandbox2843.opentlc.com
 # satellite_org_id: from Red Hat Satellite credential
 # satellite_activation_key: from survey or inventory
 
-
 # Xymon settings (optional)
 xymon_server: "xymon.example.com"
 

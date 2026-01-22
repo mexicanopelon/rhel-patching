@@ -1,0 +1,2 @@
+# Python dependencies for patching operations
+jmespath>=1.0.0

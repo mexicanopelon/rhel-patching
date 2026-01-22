@@ -1,0 +1,4 @@
+# System packages required in the EE
+python3-pip [platform:redhat]
+python3-dnf [platform:redhat]
+subscription-manager [platform:redhat]
