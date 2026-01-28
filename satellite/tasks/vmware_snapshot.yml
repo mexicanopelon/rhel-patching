@@ -37,31 +37,31 @@
   ansible.builtin.debug:
     var: vcenter_folder
 
-# - name: Step 2 - Shutdown the VM
-#   vmware.vmware.vm_powerstate:
-#     hostname: "{{ vcenter_hostname }}"
-#     username: "{{ vcenter_username }}"
-#     password: "{{ vcenter_password }}"
-#     datacenter: "{{ vcenter_datacenter }}"
-#     name: "{{ vm_name }}"
-#     state: shutdown-guest
-#     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
-#   register: vm_shutdown
-#   delegate_to: localhost
+- name: Step 2 - Shutdown the VM
+  vmware.vmware.vm_powerstate:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ vm_name }}"
+    state: shutdown-guest
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: vm_shutdown
+  delegate_to: localhost
 
-# - name: Wait for VM to power off
-#   vmware.vmware.guest_info:
-#     hostname: "{{ vcenter_hostname }}"
-#     username: "{{ vcenter_username }}"
-#     password: "{{ vcenter_password }}"
-#     datacenter: "{{ vcenter_datacenter }}"
-#     name: "{{ vm_name }}"
-#     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
-#   register: vm_powerstate
-#   until: vm_powerstate.guests[0].hw_power_status == "poweredOff"
-#   retries: 30
-#   delay: 10
-#   delegate_to: localhost
+- name: Wait for VM to power off
+  vmware.vmware.guest_info:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ vm_name }}"
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: vm_powerstate
+  until: vm_powerstate.guests[0].hw_power_status == "poweredOff"
+  retries: 30
+  delay: 10
+  delegate_to: localhost
 
 # - name: Step 3 - Take VMware snapshot
 #   vmware.vmware.vm_snapshot:
@@ -84,22 +84,22 @@
 #   ansible.builtin.set_fact:
 #     upgrade_snapshot_name: "{{ snapshot_name }}"
 
-# - name: Step 4 - Power on the VM
-#   vmware.vmware.vm_powerstate:
-#     hostname: "{{ vcenter_hostname }}"
-#     username: "{{ vcenter_username }}"
-#     password: "{{ vcenter_password }}"
-#     datacenter: "{{ vcenter_datacenter }}"
-#     name: "{{ vm_name }}"
-#     state: powered-on
-#     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
-#   register: vm_poweron
-#   delegate_to: localhost
+- name: Step 4 - Power on the VM
+  vmware.vmware.vm_powerstate:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ vm_name }}"
+    state: powered-on
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: vm_poweron
+  delegate_to: localhost
 
-# - name: Wait for system to boot and become reachable
-#   ansible.builtin.wait_for_connection:
-#     delay: 30
-#     timeout: 300
+- name: Wait for system to boot and become reachable
+  ansible.builtin.wait_for_connection:
+    delay: 30
+    timeout: 300
 
-# - name: Regather facts after boot
-#   ansible.builtin.setup:
+- name: Regather facts after boot
+  ansible.builtin.setup:
