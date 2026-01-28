@@ -23,6 +23,20 @@
   ansible.builtin.debug:
     var: vm_info
 
+- name: Parse folder path
+  set_fact:
+    vcenter_folder: "{{ vm_info.hw_folder | basename }}"
+    vcenter_datacenter: "{{ vm_info.hw_folder | dirname | dirname | basename }}"
+
+- name: Print datacenter
+  ansible.builtin.debug:
+    var: vcenter_datacenter
+
+
+- name: Print folder
+  ansible.builtin.debug:
+    var: vcenter_folder
+
 # - name: Step 2 - Shutdown the VM
 #   vmware.vmware.vm_powerstate:
 #     hostname: "{{ vcenter_hostname }}"
