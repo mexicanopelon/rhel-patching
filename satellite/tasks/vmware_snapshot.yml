@@ -25,8 +25,8 @@
 
 - name: Parse folder path
   set_fact:
-    vcenter_folder: "{{ vm_info.hw_folder | basename }}"
-    vcenter_datacenter: "{{ vm_info.hw_folder | dirname | dirname | basename }}"
+    vcenter_folder: "{{ vm_info.guests[0].hw_folder | basename }}"
+    vcenter_datacenter: "{{ vm_info.guests[0].hw_folder | dirname | dirname | basename }}"
 
 - name: Print datacenter
   ansible.builtin.debug:
