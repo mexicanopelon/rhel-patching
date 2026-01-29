@@ -74,9 +74,9 @@
   when: failed_services | length > 0
 
 - name: Verify SELinux status
-  ansible.builtin.command: getenforce
+  ansible.builtin.setup:
+    filter: selinux
   register: selinux_status
-  changed_when: false
 
 - name: Gather package facts
   ansible.builtin.package_facts:

@@ -1,9 +1,17 @@
 ---
+- name: Gather subscription-manager identity
+  community.general.rhsm_facts:
+  register: rhsm_facts
+
+- name: Show subscription info
+  ansible.builtin.debug:
+    var: rhsm_facts
+
 - name: Check subscription status
   ansible.builtin.command: subscription-manager status
   register: subscription_status
-  # changed_when: false
-  # failed_when: false
+  changed_when: false
+  failed_when: false
 
 - name: Display subscription status
   ansible.builtin.debug:
@@ -70,11 +78,23 @@
   ansible.builtin.set_fact:
     pre_upgrade_services: "{{ ansible_facts.services | dict2items | selectattr('value.state', 'eq', 'running') | map(attribute='key') | list }}"
 
-- name: Check for held or locked packages
-  ansible.builtin.command: dnf versionlock list
+# - name: Check for held or locked packages
+#   ansible.builtin.command: dnf versionlock list
+#   register: versionlock_list
+#   changed_when: false
+#   failed_when: false
+
+# REQUIRED PLUGIN FOR NEXT BLOCK
+- name: Ensure versionlock plugin is installed
+  ansible.builtin.dnf:
+    name: dnf-plugin-versionlock
+    state: present
+
+# ANOTHER WAY TO DO IT INSTEAD OF CMD
+- name: Get list of version-locked packages
+  community.general.dnf_versionlock:
+    state: list
   register: versionlock_list
-  changed_when: false
-  failed_when: false
 
 - name: Display held packages warning
   ansible.builtin.debug:

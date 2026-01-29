@@ -102,8 +102,8 @@
   when: set_release_version | default(true)
 
 - name: Clean DNF cache
-  ansible.builtin.command: dnf clean all
-  changed_when: true
+  ansible.builtin.dnf:
+    clean: all
 
 - name: Refresh subscription
   ansible.builtin.command: subscription-manager refresh
