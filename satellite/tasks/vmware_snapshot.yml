@@ -63,26 +63,26 @@
   delay: 10
   delegate_to: localhost
 
-# - name: Step 3 - Take VMware snapshot
-#   vmware.vmware.vm_snapshot:
-#     hostname: "{{ vcenter_hostname }}"
-#     username: "{{ vcenter_username }}"
-#     password: "{{ vcenter_password }}"
-#     datacenter: "{{ vcenter_datacenter }}"
-#     name: "{{ vm_name }}"
-#     folder: "{{ vcenter_folder }}" 
-#     state: present
-#     snapshot_name: "{{ snapshot_name }}"
-#     description: "Pre-upgrade snapshot before RHEL {{ target_version }} upgrade"
-#     memory_dump: false
-#     quiesce: false
-#     validate_certs: "{{ vcenter_validate_certs | default(false) }}"
-#   register: snapshot_result
-#   delegate_to: localhost
+- name: Step 3 - Take VMware snapshot
+  vmware.vmware.vm_snapshot:
+    hostname: "{{ vcenter_hostname }}"
+    username: "{{ vcenter_username }}"
+    password: "{{ vcenter_password }}"
+    datacenter: "{{ vcenter_datacenter }}"
+    name: "{{ vm_name }}"
+    folder: "{{ vcenter_folder }}" 
+    state: present
+    snapshot_name: "{{ snapshot_name }}"
+    description: "Pre-upgrade snapshot before RHEL {{ target_version }} upgrade"
+    memory_dump: false
+    quiesce: false
+    validate_certs: "{{ vcenter_validate_certs | default(false) }}"
+  register: snapshot_result
+  delegate_to: localhost
 
-# - name: Record snapshot name for rollback
-#   ansible.builtin.set_fact:
-#     upgrade_snapshot_name: "{{ snapshot_name }}"
+- name: Record snapshot name for rollback
+  ansible.builtin.set_fact:
+    upgrade_snapshot_name: "{{ snapshot_name }}"
 
 - name: Step 4 - Power on the VM
   vmware.vmware.vm_powerstate:
